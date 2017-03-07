@@ -1,0 +1,29 @@
+{
+  "name": "caro",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "abcxyz",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "*",
+    "body-parser": "*",
+    "connect-flash": "*",
+    "cookie-parser": "^1.4.1",
+    "ejs-locals": "*",
+    "express": "*",
+    "express-messages": "*",
+    "express-session": "*",
+    "express-validator": "*",
+    "gulp": "^3.9.1",
+    "mongodb": "*",
+    "mongoose": "*",
+    "passport": "*",
+    "passport-http": "*",
+    "passport-local": "*",
+    "passport-facebook": "*"
+  }
+}

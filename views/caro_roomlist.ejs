@@ -1,0 +1,49 @@
+<% layout('layouts/layout') -%>
+<div class='updatemsg'></div>
+<input type="text" class="form-control createroom" placeholder="Room name">
+<button id='create' class='btn btn-primary'>Create Room</button>
+<div class='roomslist'>
+ 
+</div>
+
+<script type="text/javascript">
+	var socket = io.connect("/roomlist");
+
+	socket.on('connect', function () {
+	})
+
+	socket.on('roomupdate', function (data) {
+		var procData = JSON.parse(data);
+		$('.roomslist').html('');
+		var i=0;
+		for (i=0; i < procData.length; i++){
+			var str = "<a href='/caro/"+ procData[i].number +"' class='btn  btn-default room_name' role='button'>"+ procData[i].number+ " - "+procData[i].name +"</a>";
+			$('.roomslist').prepend(str);
+		}
+		
+	})
+
+	socket.on('update', function (data) {
+		$('.updatemsg').replaceWith("<div class='alert alert-danger' role='alert'>"+data+"</div>");
+	})
+
+	$('#create').click(function () {
+	    var room_name = $('.createroom').val();
+	    if (room_name != ''){
+	        var room_number = parseInt(Math.random() * 1000);
+	        socket.emit('newroom', {user: {id: '<%= user.id %>', name: '<%= user.name %>'}, room_name: room_name, room_number: room_number});
+	        $('.createroom').val('');
+	    }
+	})
+
+	$('.createroom').keypress(function(e) {
+	    if (e.keyCode == 13) {
+	        var room_name = $('.createroom').val();
+		    if (room_name != ''){
+		        var room_number = parseInt(Math.random() * 1000);
+		        socket.emit('newroom', {user:  {id: '<%= user.id %>', name: '<%= user.name %>'}, room_name: room_name, room_number: room_number});
+		        $('.createroom').val('');
+		    }
+	    }
+	})
+</script>

@@ -1,0 +1,292 @@
+<% layout('layouts/layout') -%>
+<h1>Phòng: <%= room_name%></h1>
+<a href="/caro" class="btn btn-default roomlist" role='button' style="display: block;width: 100px;margin-bottom: 10px">Room list</a>
+<div class='game-caro'>
+    <div id='start'>
+        <button class='btn btn-default start disabled'>Start</button>
+        <button class='btn btn-default playpc disabled'>Play with computer</button>
+    </div>
+    <h2 class='res'></h2>
+    <div class='ban_co'>
+        
+    </div>
+    <div class='user'>
+        <div class='user1'>
+            <button class='btn btn-default ready' id='ready1'>Ready</button>
+            <p class='name name1'></p>
+        </div>
+        <div class='user2'>
+            <button class='btn btn-default ready' id='ready2'>Ready</button>
+            <p class='name name2'></p>
+        </div>
+    </div>    
+</div>
+<div class="chat">
+	<div class='khung'></div>
+	<input type="text" class='send'>
+</div>
+
+<script type="text/javascript">
+
+var room = <%= room_number%>;
+var id = '<%= user.id %>';
+var username = '<%= user.name %>';
+var luot_choi = 1;
+var MAX_H = 17;
+var MAX_C = 25;
+var bang = new Array(MAX_H);
+for (var j = 0; j < MAX_H; j++) {
+    bang[j] = new Array(MAX_C);
+    for (var i = 0; i < MAX_C; i++) {
+        bang[j][i] = 0;
+    }
+}
+
+var socket = io.connect("/caro");
+
+$('.roomlist').click(function (e) {
+    e.preventDefault();
+    socket.emit('leaveroom', {room: room, user: {id: id, name: username}});
+    window.location.href = '/caro';
+})
+
+
+socket.on('connect',function () {
+    socket.emit('joinroom',{room: room, user: {id: id, name: username}});
+})
+
+$('.ready').click(function (e) {
+    if ($(e.target).attr('id') == 'ready1'){
+        socket.emit('ready',{room: room, user: username, vt: 1});
+    }
+    else{
+        socket.emit('ready',{room: room, user: username, vt: 2});
+    }
+})
+
+$('.send').keypress(function(e) {
+    if (e.keyCode == 13) {
+        socket.emit('tinnhan', { noidung: $('.send').val(), user: username, room: room });
+        updateMessage(username, $('.send').val());
+    }
+})
+
+socket.on('tinnhan', function(data) {
+    var msg = JSON.parse(data);
+    updateMessage(msg.user, msg.noidung);
+});
+
+socket.on('msgg', function (data) {
+    $('.khung').append("<p><b>" + data.user + " </b>" + data.noidung + "</p>");
+    $('.khung').scrollTop($('.khung').prop('scrollHeight'));
+})
+
+function updateMessage(user, noidung) {
+    $('.send').val("");
+    $('.khung').append("<p><b>" + user + ": </b>" + noidung + "</p>");
+    $('.khung').scrollTop($('.khung').prop('scrollHeight'));
+}
+
+socket.on('ready', function (data) {
+    let n = data.ready.length;
+    $('#ready1').show();
+    $('#ready2').show();
+    $('.name1').html('');
+    $('.name2').html('');
+    if (n == 1){
+        $('#ready1').hide();
+        $('.name1').html(data.ready[0]);
+        if (data.ready[0] == username){
+            $('#ready2').addClass('disabled');
+            $('.start').removeClass('disabled');
+            $('.playpc').removeClass('disabled');
+        }
+    }
+    if (n == 2){
+        $('#ready1').hide();
+        $('.name1').html(data.ready[0]);
+        $('#ready2').hide();
+        $('.name2').html(data.ready[1]);
+        if (data.ready[0] == username || data.ready[1] == username){
+            $('.start').removeClass('disabled');
+            $('.playpc').removeClass('disabled');
+        }
+    }
+})
+
+$('.start').click(function () {
+    socket.emit('luotchoi', {luotchoi: luot_choi,room: room});
+    $('#start').hide();
+    $('.res').hide();
+})
+
+socket.on('luotchoi', function(data) {
+    $('#start').hide();
+    $('.res').hide();
+    for (var j = 0; j < MAX_H; j++) {
+        for (var i = 0; i < MAX_C; i++) {
+            bang[j][i] = 0;
+        }
+    }
+    if ($('.ban_co').empty()) {
+        for (var j = 0; j < MAX_H; j++) {
+            for (var i = 0; i < MAX_C; i++) {
+                bang[j][i] = 0;
+                $(".ban_co").append("<img class='square' id='" + (i + j * MAX_C) + "' src='../img/Blank.jpg' width='30px'>");
+            }
+        }
+    }
+
+    luot_choi = data.luotchoi;
+    socket.emit("tennguoichoi", { luotchoi: luot_choi, user: username });
+    var luot_di;
+    if (luot_choi == 1){
+        luot_di = true;
+    }
+    else luot_di = false;
+    var number = 0;
+    socket.on("luotdi", function(data) {
+        $('.name' + luot_choi).toggleClass('chugreen');
+        $('.name' + (3 - luot_choi)).toggleClass('chugreen');
+        if (luot_choi == data.luotchoi)
+            luot_di = true;
+        else luot_di = false;
+        if (luot_di) {
+            number = data.odi;
+            hang = parseInt(number / MAX_C);
+            cot = number % MAX_C;
+            if (luot_choi == 2) {
+                $("#" + number).replaceWith("<img id='" + number + "' name='x' src='../img/X.jpg' width='30px'>");
+                bang[hang][cot] = 3 - luot_choi;
+            } else
+            if (luot_choi == 1) {
+                $("#" + number).replaceWith("<img id='" + number + "' name='o' src='../img/O.jpg' width='30px'>");
+                bang[hang][cot] = 3 - luot_choi;
+            }
+            $("#" + number).addClass('bordergreen');
+
+            if (check_doc(bang, hang, cot, 3 - luot_choi) || check_ngang(bang, hang, cot, 3 - luot_choi) || check_cheo1(bang, hang, cot, 3 - luot_choi) || check_cheo2(bang, hang, cot, 3 - luot_choi)) {
+                $(".res").replaceWith("<div class='res'><h1>Người chơi " + (3 - luot_choi) + "thắng!!</h1></div>");
+                $("#start").show();
+                luot_di = false;
+            }
+        }
+    });
+    $(".square").click(function(e) {
+        if (luot_di && (data.ready[0] == username || data.ready[1] == username)) {
+            $('.user' + luot_choi).toggleClass('chugreen');
+            $('.user' + (3 - luot_choi)).toggleClass('chugreen');
+            $("#" + number).removeClass('bordergreen');
+            number = $(e.target).attr('id');
+            hang = parseInt(number / MAX_C);
+            cot = number % MAX_C;
+            if (luot_choi == 1) {
+                $(e.target).replaceWith("<img id='" + number + "' name='x' src='../img/X.jpg' width='30px'>");
+                bang[hang][cot] = luot_choi;
+                socket.emit('vuadi', { luotchoi: luot_choi, odi: number, room: room});
+            } else
+            if (luot_choi == 2) {
+                $(e.target).replaceWith("<img id='" + number + "' name='o' src='../img/O.jpg' width='30px'>");
+                bang[hang][cot] = luot_choi;
+                socket.emit('vuadi', { luotchoi: luot_choi, odi: number, room: room });
+            }
+            luot_di = false;
+            if (check_doc(bang, hang, cot, luot_choi) || check_ngang(bang, hang, cot, luot_choi) || check_cheo1(bang, hang, cot, luot_choi) || check_cheo2(bang, hang, cot, luot_choi)) {
+                $(".res").replaceWith("<div class='res'><h1>Người chơi " + luot_choi + "thắng!!</h1></div>");
+                $("#start").show();
+                luot_di = false;
+            }
+        }
+    });
+
+})
+
+function check_ngang(bang, hang, cot, luot_choi) {
+    count = 1;
+    i = 1;
+    while ((cot + i < MAX_C) && (bang[hang][cot + i] == luot_choi)) {
+        i++;
+        count++;
+    }
+    j = -1;
+    while ((cot + j > -1) && (bang[hang][cot + j] == luot_choi)) {
+        j--;
+        count++;
+    }
+    if (count >= 5) {
+        if (((cot + i == MAX_C) || (bang[hang][cot + i] == 3 - luot_choi)) && ((cot + j == -1) || (bang[hang][cot + j] == 3 - luot_choi)))
+            return false;
+        else return true;
+    }
+    return false;
+}
+
+function check_doc(bang, hang, cot, luot_choi) {
+    count = 1;
+    i = 1;
+    while ((hang + i < MAX_H) && (bang[hang + i][cot] == luot_choi)) {
+        i++;
+        count++;
+    }
+    j = -1;
+    while ((hang + j > -1) && (bang[hang + j][cot] == luot_choi)) {
+        j--;
+        count++;
+    }
+    if (count >= 5) {
+        if (((hang + i == MAX_H) || (bang[hang + i][cot] == 3 - luot_choi)) && ((hang + j == -1) || (bang[hang + j][cot] == 3 - luot_choi)))
+            return false;
+        else return true;
+    }
+    return false;
+}
+
+function check_cheo1(bang, hang, cot, luot_choi) {
+    count = 1;
+    i = 1;
+    j = 1;
+    while ((hang + i < MAX_H) && (cot + j < MAX_C) && (bang[hang + i][cot + j] == luot_choi)) {
+        i++;
+        j++;
+        count++;
+    }
+    k = -1;
+    l = -1;
+    while ((hang + k > -1) && (cot + l > -1) && (bang[hang + k][cot + l] == luot_choi)) {
+        k--;
+        l--;
+        count++;
+    }
+    if (count >= 5) {
+        if (((hang + i == MAX_H) || (cot + j == MAX_C) || (bang[hang + i][cot + j] == 3 - luot_choi)) && ((hang + k == -1) || (cot + l == -1) || (bang[hang + k][cot + l] == 3 - luot_choi)))
+            return false;
+        else return true;
+    }
+    return false;
+}
+
+function check_cheo2(bang, hang, cot, luot_choi) {
+    count = 1;
+    i = 1;
+    j = -1;
+    while ((hang + i < MAX_H) && (cot + j > -1) && (bang[hang + i][cot + j] == luot_choi)) {
+        i++;
+        j--;
+        count++;
+    }
+    k = -1;
+    l = 1;
+    while ((hang + k > -1) && (cot + l < MAX_C) && (bang[hang + k][cot + l] == luot_choi)) {
+        k--;
+        l++;
+        count++;
+    }
+    if (count >= 5) {
+        if (((hang + i == MAX_H) || (cot + j == -1) || (bang[hang + i][cot + j] == 3 - luot_choi)) && ((hang + k == -1) || (cot + l == MAX_C) || (bang[hang + k][cot + l] == 3 - luot_choi)))
+            return false;
+        else return true;
+    }
+    return false;
+}
+
+</script>

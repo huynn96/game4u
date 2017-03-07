@@ -1,0 +1,13 @@
+.createroom{
+    width: 20%;
+    display: inline-block;
+}
+.roomslist {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    width: 70%;
+}
+.room_name{
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
