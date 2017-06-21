@@ -4,8 +4,10 @@
 	<meta charset="utf-8">
 	<title>Game4U</title>
 	<link rel="stylesheet" type="text/css" href="/css/index.css">
+  <link rel="stylesheet" type="text/css" href="/css/profile.css">
 	<link rel="stylesheet" type="text/css" href="/library/css/bootstrap.css">
 	<link rel="stylesheet" type="text/css" href="/css/caro_roomlist.css">	
+   <link rel="stylesheet" href="/library/font-awesome/css/font-awesome.css">
   <script type="text/javascript" src="/socket.io/socket.io.js"></script>
   <script src="/library/jquery-1.12.4.js"></script>
   <script src="/library/js/bootstrap.js"></script>
@@ -27,7 +29,8 @@
           <ul class="nav navbar-nav">
           <% if(user){ %>
             <li><a href="/">Home</a></li>
-            <li><a href="/users/logout">logout</a></li>
+            <li><a href="/profile">Profile</a></li>
+            <li><a href="/users/logout">Logout</a></li>
           <% }else{ %>
             <li><a href="/users/login">Login</a></li>
             <li><a href="/users/register">Register</a></li>

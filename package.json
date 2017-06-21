@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js"
   },
   "author": "abcxyz",
   "license": "ISC",
@@ -24,6 +24,7 @@
     "passport": "*",
     "passport-http": "*",
     "passport-local": "*",
-    "passport-facebook": "*"
+    "passport-facebook": "*",
+    "serve-favicon": "*"
   }
 }

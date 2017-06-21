@@ -17,6 +17,10 @@ var UserSchema = mongoose.Schema({
 	},
 	photoPic: {
 		type: String
+	},
+	facebook:{
+		fid: String,
+		token: String
 	}
 });
 

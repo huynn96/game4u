@@ -50,7 +50,6 @@ router.post('/register',function (req, res) {
 
 		User.createUser(newUser, function (err, user) {
 			if (err) throw err;
-			console.log(user);
 		})
 
 		req.flash('success_msg', 'You are registered and can now login');
@@ -85,8 +84,25 @@ passport.use(new FacebookStrategy({
     profileFields: ['id', 'displayName', 'photos', 'emails']
   },
   function(accessToken, refreshToken, profile, done) {
-  		console.log(accessToken);
-  		console.log(profile);
+  		User.findOne({'facebook.fid': profile.id}, function (err, user) {
+  			if (err)
+  				done(err);
+  			if (user)
+  				done(null, user);
+  			else{
+  				var newUser = new User();
+  				newUser.facebook.fid = profile.id;
+  				newUser.facebook.token = accessToken;
+  				newUser.email = profile.emails[0].value;
+  				newUser.name = profile.displayName;
+  				newUser.photoPic = profile.photos[0].value || '';
+
+  				newUser.save(function (err) {
+  					if (err) throw err;
+  					done(null, newUser);
+  				})
+  			}
+  		})
   }
 ));
 

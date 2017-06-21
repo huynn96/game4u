@@ -10,14 +10,16 @@ var passport = require('passport');
 var mongo = require('mongodb');
 var mongoose = require('mongoose');
 var socketio = require('./routes/socket');
+var favicon = require('serve-favicon');
 
-mongoose.connect('mongodb://localhost/logingame4u');
+mongoose.connect("mongodb://abcxyz:123@ds055742.mlab.com:55742/logingame4u"); //"mongodb://abcxyz:123@ds055742.mlab.com:55742/logingame4u" "mongodb://localhost/logingame4u"
 var db = mongoose.connection;
 
 var rooms = [];
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
+var profile = require('./routes/profile');
 
 // Init App
 var app = express();
@@ -34,6 +36,9 @@ app.use(cookieParser());
 
 // Set Static Folder
 app.use(express.static(path.join(__dirname, 'public')));
+
+//favicon
+app.use(favicon(path.join(__dirname, 'public/img/favicon.ico')))
 
 // Express Session
 app.use(session({
@@ -78,6 +83,7 @@ app.use(function (req, res, next) {
 
 app.use('/', routes);
 app.use('/users', users);
+app.use('/profile', profile);
 require('./routes/caro')(app, rooms);
 
 // Set Port

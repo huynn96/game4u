@@ -13,10 +13,12 @@
     <div class='user'>
         <div class='user1'>
             <button class='btn btn-default ready' id='ready1'>Ready</button>
+            <img src="" class='photo photo1'>
             <p class='name name1'></p>
         </div>
         <div class='user2'>
             <button class='btn btn-default ready' id='ready2'>Ready</button>
+            <img src="" class='photo photo2'>
             <p class='name name2'></p>
         </div>
     </div>    
@@ -25,12 +27,14 @@
 	<div class='khung'></div>
 	<input type="text" class='send'>
 </div>
+<div class="photoPic" style="display: none"><%= user.photoPic%></div>
 
 <script type="text/javascript">
 
 var room = <%= room_number%>;
 var id = '<%= user.id %>';
 var username = '<%= user.name %>';
+var photoPic = $('.photoPic').text();
 var luot_choi = 1;
 var MAX_H = 17;
 var MAX_C = 25;
@@ -46,21 +50,24 @@ var socket = io.connect("/caro");
 
 $('.roomlist').click(function (e) {
     e.preventDefault();
-    socket.emit('leaveroom', {room: room, user: {id: id, name: username}});
+    socket.emit('disconnect');
     window.location.href = '/caro';
 })
 
+if (performance.navigation.type == 1) {
+    window.location.href = '/caro';
+}
 
 socket.on('connect',function () {
-    socket.emit('joinroom',{room: room, user: {id: id, name: username}});
+    socket.emit('joinroom',{room: room, user: {id: id, name: username, photo: photoPic}});
 })
 
 $('.ready').click(function (e) {
     if ($(e.target).attr('id') == 'ready1'){
-        socket.emit('ready',{room: room, user: username, vt: 1});
+        socket.emit('ready',{room: room, user: username, photo: photoPic, vt: 1});
     }
     else{
-        socket.emit('ready',{room: room, user: username, vt: 2});
+        socket.emit('ready',{room: room, user: username, photo: photoPic, vt: 2});
     }
 })
 
@@ -93,29 +100,40 @@ socket.on('ready', function (data) {
     $('#ready2').show();
     $('.name1').html('');
     $('.name2').html('');
+    $(".photo1").hide();
+    $(".photo2").hide();
     if (n == 1){
         $('#ready1').hide();
-        $('.name1').html(data.ready[0]);
-        if (data.ready[0] == username){
+        $('.name1').html(data.ready[0].user);
+        $(".photo1").show();
+        $(".photo1").attr("src", data.ready[0].photo);
+        $(".photo2").attr("src", '');
+        if (data.ready[0].user == username){
             $('#ready2').addClass('disabled');
-            $('.start').removeClass('disabled');
+            $('#start').show();
+            $('.start').addClass('disabled');
             $('.playpc').removeClass('disabled');
         }
     }
     if (n == 2){
         $('#ready1').hide();
-        $('.name1').html(data.ready[0]);
+        $('.name1').html(data.ready[0].user);
         $('#ready2').hide();
-        $('.name2').html(data.ready[1]);
-        if (data.ready[0] == username || data.ready[1] == username){
+        $('.name2').html(data.ready[1].user);
+        $(".photo1").show();
+        $(".photo2").show();
+        $(".photo1").attr("src", data.ready[0].photo);
+        $(".photo2").attr("src", data.ready[1].photo);
+        if (data.ready[0].user == username || data.ready[1].user == username){
+            $('#start').show();
             $('.start').removeClass('disabled');
-            $('.playpc').removeClass('disabled');
+            $('.playpc').addClass('disabled');
         }
     }
 })
 
 $('.start').click(function () {
-    socket.emit('luotchoi', {luotchoi: luot_choi,room: room});
+    socket.emit('luotchoi', {room: room});
     $('#start').hide();
     $('.res').hide();
 })
@@ -123,11 +141,13 @@ $('.start').click(function () {
 socket.on('luotchoi', function(data) {
     $('#start').hide();
     $('.res').hide();
+
     for (var j = 0; j < MAX_H; j++) {
         for (var i = 0; i < MAX_C; i++) {
             bang[j][i] = 0;
         }
     }
+
     if ($('.ban_co').empty()) {
         for (var j = 0; j < MAX_H; j++) {
             for (var i = 0; i < MAX_C; i++) {
@@ -138,20 +158,24 @@ socket.on('luotchoi', function(data) {
     }
 
     luot_choi = data.luotchoi;
-    socket.emit("tennguoichoi", { luotchoi: luot_choi, user: username });
+    var ready = data.ready;
     var luot_di;
-    if (luot_choi == 1){
+    if (username == ready[luot_choi-1].user)
         luot_di = true;
-    }
     else luot_di = false;
+    $('.name1').removeClass('chugreen');
+    $('.name2').removeClass('chugreen');
+    $('.name' + luot_choi).toggleClass('chugreen');
     var number = 0;
     socket.on("luotdi", function(data) {
-        $('.name' + luot_choi).toggleClass('chugreen');
-        $('.name' + (3 - luot_choi)).toggleClass('chugreen');
-        if (luot_choi == data.luotchoi)
+        $("#" + number).removeClass('bordergreen');
+        luot_choi = data.luotchoi;
+        $('.name1').toggleClass('chugreen');
+        $('.name2').toggleClass('chugreen');
+        if (username == ready[data.luotchoi-1].user)
             luot_di = true;
         else luot_di = false;
-        if (luot_di) {
+        if (true) {
             number = data.odi;
             hang = parseInt(number / MAX_C);
             cot = number % MAX_C;
@@ -166,16 +190,17 @@ socket.on('luotchoi', function(data) {
             $("#" + number).addClass('bordergreen');
 
             if (check_doc(bang, hang, cot, 3 - luot_choi) || check_ngang(bang, hang, cot, 3 - luot_choi) || check_cheo1(bang, hang, cot, 3 - luot_choi) || check_cheo2(bang, hang, cot, 3 - luot_choi)) {
-                $(".res").replaceWith("<div class='res'><h1>Người chơi " + (3 - luot_choi) + "thắng!!</h1></div>");
+                var win = ready[0].user==username?ready[1].user:ready[0].user;
+                $(".res").replaceWith("<div class='res'><h1>" + win + " thắng</h1></div>");
                 $("#start").show();
                 luot_di = false;
             }
         }
     });
     $(".square").click(function(e) {
-        if (luot_di && (data.ready[0] == username || data.ready[1] == username)) {
-            $('.user' + luot_choi).toggleClass('chugreen');
-            $('.user' + (3 - luot_choi)).toggleClass('chugreen');
+        if (luot_di && (data.ready[0].user == username || data.ready[1].user == username)) {
+            $('.name1').toggleClass('chugreen');
+            $('.name2').toggleClass('chugreen');
             $("#" + number).removeClass('bordergreen');
             number = $(e.target).attr('id');
             hang = parseInt(number / MAX_C);
@@ -192,7 +217,7 @@ socket.on('luotchoi', function(data) {
             }
             luot_di = false;
             if (check_doc(bang, hang, cot, luot_choi) || check_ngang(bang, hang, cot, luot_choi) || check_cheo1(bang, hang, cot, luot_choi) || check_cheo2(bang, hang, cot, luot_choi)) {
-                $(".res").replaceWith("<div class='res'><h1>Người chơi " + luot_choi + "thắng!!</h1></div>");
+                $(".res").replaceWith("<div class='res'><h1>" + username + " thắng</h1></div>");
                 $("#start").show();
                 luot_di = false;
             }
@@ -290,3 +315,6 @@ function check_cheo2(bang, hang, cot, luot_choi) {
 }
 
 </script>
+<script type="text/javascript" src="/js/AI_caro.js"></script>
+<script type="text/javascript" src="/js/calMark.js"></script>
+<script type="text/javascript" src="/js/ABMinimax.js"></script>

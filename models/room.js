@@ -1,8 +1,10 @@
-function Room(name, number, owner) {  
+function Room(name, number, owner, ownername, photo) { 
   this.name = name;
   this.number = number;
   this.owner = owner;
   this.people = [];
+  this.ready = new Array({user: ownername, photo: photo});
+  this.gameOn = false;
   this.status = "available";
 };
 

@@ -5,6 +5,7 @@
 <div class='roomslist'>
  
 </div>
+<p class='photoPic' style="display: none"><%= user.photoPic%></p>
 
 <script type="text/javascript">
 	var socket = io.connect("/roomlist");
@@ -26,12 +27,13 @@
 	socket.on('update', function (data) {
 		$('.updatemsg').replaceWith("<div class='alert alert-danger' role='alert'>"+data+"</div>");
 	})
+	var photoPic = $('.photoPic').text();
 
 	$('#create').click(function () {
 	    var room_name = $('.createroom').val();
 	    if (room_name != ''){
 	        var room_number = parseInt(Math.random() * 1000);
-	        socket.emit('newroom', {user: {id: '<%= user.id %>', name: '<%= user.name %>'}, room_name: room_name, room_number: room_number});
+	        socket.emit('newroom', {user: {id: '<%= user.id %>', name: '<%= user.name %>', photo: photoPic}, room_name: room_name, room_number: room_number});
 	        $('.createroom').val('');
 	    }
 	})
@@ -41,9 +43,13 @@
 	        var room_name = $('.createroom').val();
 		    if (room_name != ''){
 		        var room_number = parseInt(Math.random() * 1000);
-		        socket.emit('newroom', {user:  {id: '<%= user.id %>', name: '<%= user.name %>'}, room_name: room_name, room_number: room_number});
+		        socket.emit('newroom', {user:  {id: '<%= user.id %>', name: '<%= user.name %>', photo: photoPic}, room_name: room_name, room_number: room_number});
 		        $('.createroom').val('');
 		    }
 	    }
 	})
+
+	setInterval(function () {
+		socket.emit('listroom');
+	}, 1000);
 </script>

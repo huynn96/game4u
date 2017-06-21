@@ -92,7 +92,7 @@ footer {
 .res{
   position: absolute;
   z-index: 1;
-  top: 25%;
+  top: 20%;
   left: 33%;
   background-color: #CAC9C9;
 }
@@ -125,4 +125,9 @@ footer {
 
 .name{
   font-weight: bold;
+}
+
+.photo{
+  width: 75px;
+  height: 75px;
 }
