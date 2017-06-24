@@ -100,10 +100,10 @@ footer {
 .user{
   position: absolute;
   display: inline-block;   
-  
 }
 
 .user1{
+  position: relative;
   display: block;
   width: 200px;
   height: 150px;
@@ -112,6 +112,7 @@ footer {
 }
 
 .user2{
+  position: relative;
   display: block;
   width: 200px;
   height: 150px;
@@ -130,4 +131,28 @@ footer {
 .photo{
   width: 75px;
   height: 75px;
+}
+
+#localVideo{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 196px;
+  height: 144px;
+  z-index: 2;
+}
+
+#remoteVideo{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 196px;
+  height: 144px;
+  z-index: 2;
+}
+
+.video{
+  position: absolute;
+  bottom: 0;
+  left: 0;
 }

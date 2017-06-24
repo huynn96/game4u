@@ -22,9 +22,14 @@
     "mongodb": "*",
     "mongoose": "*",
     "passport": "*",
+    "passport-facebook": "*",
     "passport-http": "*",
     "passport-local": "*",
-    "passport-facebook": "*",
     "serve-favicon": "*"
+  },
+  "devDependencies": {
+    "jquery": "^3.2.1",
+    "simple-peer": "^8.1.1",
+    "webpack": "^3.0.0"
   }
 }

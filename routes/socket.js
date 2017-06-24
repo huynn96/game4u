@@ -60,7 +60,7 @@ function initSocket(server, rooms) {
             var luot_choi = Math.floor(Math.random() * 2) + 1;
             var checkroom = findRoom(data.room);
             rooms[checkroom].gameOn = true;
-            socket.broadcast.to(data.room).emit('luotchoi', { luotchoi: luot_choi, ready: rooms[checkroom].ready});
+            socket.broadcast.to(data.room).emit('luotchoi', { luotchoi: luot_choi, ready: rooms[checkroom].ready });
             socket.emit('luotchoi', { luotchoi: luot_choi, ready: rooms[checkroom].ready });
         })
 
@@ -82,6 +82,7 @@ function initSocket(server, rooms) {
         socket.on('disconnect', function() {
             var check = findOwnerRoom(socket.userid);
             var checkroom = findRoom(socket.room);
+            socket.broadcast.to(socket.room).emit('hasDisconnect', { name: socket.username });
             if (checkroom != -1) {
                 if (rooms[checkroom].ready[0].user == socket.username) {
                     rooms[checkroom].ready.splice(0, 1);
@@ -112,10 +113,9 @@ function initSocket(server, rooms) {
                         }
                     }
                     rooms[check].owner = rooms[check].people[0].id;
-                    if (rooms[check].ready.length == 0){
-                        rooms[check].ready.push({user: rooms[check].people[0].name, photo: rooms[check].people[0].photo});
-                    }
-                    else{
+                    if (rooms[check].ready.length == 0) {
+                        rooms[check].ready.push({ user: rooms[check].people[0].name, photo: rooms[check].people[0].photo });
+                    } else {
                         rooms[check].ready[0].user = rooms[check].people[0].name;
                         rooms[check].ready[0].photo = rooms[check].people[0].photo;
                     }
@@ -125,6 +125,14 @@ function initSocket(server, rooms) {
                 }
             }
 
+        })
+
+        socket.on('callVideo', (data) => {
+            socket.broadcast.to(socket.room).emit('calling', { token: data.token });
+        })
+
+        socket.on('answerCall', (data) => {
+            socket.broadcast.to(socket.room).emit('answerCall', { token: data.token });
         })
     });
 }

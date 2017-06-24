@@ -301,3 +301,91 @@ function mark_cheo2_defend(bang, hang, cot, luot_choi) {
     mark += MARK_DEFEND[quanDich];
     return mark;
 }
+
+function check_ngang(bang, hang, cot, luot_choi) {
+    count = 1;
+    i = 1;
+    while ((cot + i < MAX_C) && (bang[hang][cot + i] == luot_choi)) {
+        i++;
+        count++;
+    }
+    j = -1;
+    while ((cot + j > -1) && (bang[hang][cot + j] == luot_choi)) {
+        j--;
+        count++;
+    }
+    if (count >= 5) {
+        if (((cot + i == MAX_C) || (bang[hang][cot + i] == 3 - luot_choi)) && ((cot + j == -1) || (bang[hang][cot + j] == 3 - luot_choi)))
+            return false;
+        else return true;
+    }
+    return false;
+}
+
+function check_doc(bang, hang, cot, luot_choi) {
+    count = 1;
+    i = 1;
+    while ((hang + i < MAX_H) && (bang[hang + i][cot] == luot_choi)) {
+        i++;
+        count++;
+    }
+    j = -1;
+    while ((hang + j > -1) && (bang[hang + j][cot] == luot_choi)) {
+        j--;
+        count++;
+    }
+    if (count >= 5) {
+        if (((hang + i == MAX_H) || (bang[hang + i][cot] == 3 - luot_choi)) && ((hang + j == -1) || (bang[hang + j][cot] == 3 - luot_choi)))
+            return false;
+        else return true;
+    }
+    return false;
+}
+
+function check_cheo1(bang, hang, cot, luot_choi) {
+    count = 1;
+    i = 1;
+    j = 1;
+    while ((hang + i < MAX_H) && (cot + j < MAX_C) && (bang[hang + i][cot + j] == luot_choi)) {
+        i++;
+        j++;
+        count++;
+    }
+    k = -1;
+    l = -1;
+    while ((hang + k > -1) && (cot + l > -1) && (bang[hang + k][cot + l] == luot_choi)) {
+        k--;
+        l--;
+        count++;
+    }
+    if (count >= 5) {
+        if (((hang + i == MAX_H) || (cot + j == MAX_C) || (bang[hang + i][cot + j] == 3 - luot_choi)) && ((hang + k == -1) || (cot + l == -1) || (bang[hang + k][cot + l] == 3 - luot_choi)))
+            return false;
+        else return true;
+    }
+    return false;
+}
+
+function check_cheo2(bang, hang, cot, luot_choi) {
+    count = 1;
+    i = 1;
+    j = -1;
+    while ((hang + i < MAX_H) && (cot + j > -1) && (bang[hang + i][cot + j] == luot_choi)) {
+        i++;
+        j--;
+        count++;
+    }
+    k = -1;
+    l = 1;
+    while ((hang + k > -1) && (cot + l < MAX_C) && (bang[hang + k][cot + l] == luot_choi)) {
+        k--;
+        l++;
+        count++;
+    }
+    if (count >= 5) {
+        if (((hang + i == MAX_H) || (cot + j == -1) || (bang[hang + i][cot + j] == 3 - luot_choi)) && ((hang + k == -1) || (cot + l == MAX_C) || (bang[hang + k][cot + l] == 3 - luot_choi)))
+            return false;
+        else return true;
+    }
+    return false;
+}
